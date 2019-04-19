@@ -14,14 +14,16 @@ import { AuthService } from 'src/app/_services/auth.service';
   styleUrls: ['./member-edit.component.css']
 })
 export class MemberEditComponent implements OnInit {
-  user: User;
   @ViewChild('editForm') editForm: NgForm;
-  @HostListener('windows:beforeunload', ['$event'])
+  user: User;
+  @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
     if (this.editForm.dirty) {
       $event.returnValue = true;
     }
   }
+
+
   constructor(private route: ActivatedRoute, private alertify: AlertifyService,
     private userService: UserService , private authService: AuthService) { }
 
@@ -31,8 +33,8 @@ export class MemberEditComponent implements OnInit {
     });
   }
 
-  updateUser() {
-     this.userService.updateUser(this.authService.decodedToken.nameid, this.user).subscribe(next =>{
+ updateUser() {
+     this.userService.updateUser(this.authService.decodedToken.nameid, this.user).subscribe(next => {
       this.alertify.success('Profile updated');
       this.editForm.reset(this.user);
      }, error => {
