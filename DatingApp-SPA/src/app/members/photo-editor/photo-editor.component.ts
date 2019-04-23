@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { FileUploader } from 'ng2-file-upload';
 import { Photo } from '../../_models/Photo';
 import { environment } from 'src/environments/environment';
@@ -13,11 +13,13 @@ import { AlertifyService } from 'src/app/_services/Alertify.service';
 })
 export class PhotoEditorComponent implements OnInit {
   @Input() photos: Photo[];
+  @Output() getMemberPhotoChange = new EventEmitter<string>();
   uploader: FileUploader;
   hasBaseDropZoneOver  = false;
   baseUrl = environment.apiUrl;
+  currentMain: Photo;
 
-  constructor(private authService: AuthService, private userService: UserService,private alterify: AlertifyService) { }
+  constructor(private authService: AuthService, private userService: UserService, private alterify: AlertifyService) { }
 
   ngOnInit() {
     this.initializeUploader();
@@ -53,10 +55,23 @@ export class PhotoEditorComponent implements OnInit {
       }
     };
   }
-  setMainPhoto(photo: Photo){
-    this.userService.setMainPhoto(this.authService.decodedToken.nameid,photo.id).subscribe(() => {
-      console.log('Success');
+  setMainPhoto(photo: Photo) {
+    this.userService.setMainPhoto(this.authService.decodedToken.nameid, photo.id).subscribe(() => {
+      this.currentMain = this.photos.filter(p => p.isMain === true)[0];
+      this.currentMain.isMain = false;
+      photo.isMain = true;
+      this.authService.changeMemberPhoto(photo.url);
+      this.authService.currentUser.photoUrl = photo.url;
+      localStorage.setItem('user', JSON.stringify(this.authService.currentUser));
     }, error => this.alterify.error(error));
+  }
+  deletePhoto(id: number) {
+    this.alterify.confirm('Are you sure, you want to delete this photo?', () => {
+      this.userService.deletePhoto(this.authService.decodedToken.nameid, id).subscribe(() => {
+        this.photos.splice(this.photos.findIndex(p => p.id === id), 1);
+        this.alterify.success('Photo has been deleted');
+      }, error => {this.alterify.error('Failed to delete the photo'); });
+    });
   }
 
 }
