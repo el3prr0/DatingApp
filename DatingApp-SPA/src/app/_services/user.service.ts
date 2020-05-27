@@ -83,11 +83,14 @@ export class UserService {
     .pipe(
       map(response => {
         paginationResult.result = response.body;
-        if (response.headers.get('Pagination') != null) {
+        if (response.headers.get('Pagination') !== null) {
           paginationResult.pagination = JSON.parse(response.headers.get('Pagination'));
         }
         return paginationResult;
       })
     );
+  }
+  getMessageThread(id: number, recipientId: number) {
+    return this.http.get<Message[]>(this.baseUrl + 'users/' + id + '/messages/thread/' + recipientId);
   }
 }

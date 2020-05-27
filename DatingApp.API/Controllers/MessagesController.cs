@@ -13,9 +13,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace DatingApp.API.Controllers
 {
     [ServiceFilter(typeof(LogUserActivity))]
+    [Authorize]
     [Route("api/users/{userId}/{controller}")]
     [ApiController]
-    [Authorize]
+    
     public class MessagesController : ControllerBase
     {
         private readonly IDatingRepository _repo;
@@ -83,14 +84,14 @@ namespace DatingApp.API.Controllers
             throw new Exception("Creating the message failed on save");
         }
 
-        [HttpGet("/thread/{recipientId}")]
+        [HttpGet("thread/{recipientId}")]
         public async Task<IActionResult> GetMessageThread(int userId,int recipientId){
             if(userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value)){
                 return Unauthorized();
             }
             var messageFromRepo = await _repo.GetMessageThread(userId,recipientId);
             var messageThread = _mapper.Map<IEnumerable<MessageToReturn>>(messageFromRepo);
-            return Ok(messageFromRepo);
+            return Ok(messageThread);
         }
         
     }
